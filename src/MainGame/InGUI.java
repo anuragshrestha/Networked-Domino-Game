@@ -196,7 +196,7 @@ public class InGUI extends Application {
 
         root.setBottom(bottomSection);
 
-        Scene scene = new Scene(root, 600, 300);
+        Scene scene = new Scene(root, 800, 800);
         primaryStage.setTitle("DominoPackage.Domino Game");
         primaryStage.setScene(scene);
 
