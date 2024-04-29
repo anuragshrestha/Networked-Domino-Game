@@ -75,7 +75,6 @@ public class Distribute {
             System.out.println("Human hand: " + humanHand );
         }
         System.out.println("Cards remaining in deck: " + deck.size());
-        // Print the number of cards remaining in the deck
     }
 
     /**
@@ -91,7 +90,6 @@ public class Distribute {
             System.out.println("Computer have "+ computerHand.size() + " pieces");
         }
         System.out.println("Cards remaining in deck: " + deck.size());
-        // Print the number of cards remaining in the deck, only print this for the computer's draw as well
         return null;
     }
 }
