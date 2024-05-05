@@ -32,7 +32,7 @@ public class Client extends Application {
     private TilePane playYardView = new TilePane(Orientation.HORIZONTAL);
     private PlayYard playYard;
     private HBox dominoPane = new HBox(10);  // Horizontal layout for dominoes
-    private Label statusLabel = new Label("Attempting to connect..");
+    private Label statusLabel = new Label("Attempting to connect...");
 
 
     private String username;

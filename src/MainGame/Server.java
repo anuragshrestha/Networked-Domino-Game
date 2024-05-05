@@ -18,10 +18,10 @@ public class Server {
     private int clientCount = 0;
    private static int portNumber;
 
-    public Server(int port) throws IOException {
+    public Server(int portNumber) throws IOException {
 
         //this.serverSocket = serverSocket;
-        serverSocket = new ServerSocket(port);
+        serverSocket = new ServerSocket(portNumber);
         distribute = new Distribute();
     }
 
@@ -34,7 +34,7 @@ public class Server {
             while (!serverSocket.isClosed() && clientCount < maxClient) {
                 Socket socket = serverSocket.accept();
                 System.out.println("A new client has connected. Num of clients: " + (clientCount + 1));
-                if (clientCount >= maxClient) {
+                if (clientCount > maxClient) {
                     System.out.println("Max clients reached, refusing additional connections.");
                     socket.close();
                     continue;
@@ -76,31 +76,31 @@ public class Server {
         }
     }
 
-    private static void promptUser() throws IOException {
-
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("How many human players (clients) do you want? Select up to 3");
-        maxClient = Integer.parseInt(scanner.nextLine());
-        System.out.println("What is your port number?");
-        portNumber = Integer.parseInt(scanner.nextLine());
-        System.out.println("You chosed port number: " + portNumber);
-        try {
-            Properties prop = new Properties();
-            prop.setProperty("portNumber", String.valueOf(portNumber));
-            prop.store(new FileOutputStream("config.properties"), null);
-        } catch (IOException e) {
-            System.out.println("Error while writing to the properties file.");
-            e.printStackTrace();
-        }
-    }
+//    private static void promptUser() throws IOException {
+//
+//        Scanner scanner = new Scanner(System.in);
+//        System.out.println("How many human players (clients) do you want? Select up to 3");
+//        maxClient = Integer.parseInt(scanner.nextLine());
+//        System.out.println("What is your port number?");
+//        portNumber = Integer.parseInt(scanner.nextLine());
+//        System.out.println("You chosed port number: " + portNumber);
+//        try {
+//            Properties prop = new Properties();
+//            prop.setProperty("portNumber", String.valueOf(portNumber));
+//            prop.store(new FileOutputStream("config.properties"), null);
+//        } catch (IOException e) {
+//            System.out.println("Error while writing to the properties file.");
+//            e.printStackTrace();
+//        }
+//    }
 
 
 
     public static void main(String[] args) {
 
         try {
-           // promptUser();
-           // ServerSocket serverSocket = new ServerSocket(portNumber);
+            // promptUser();
+            // ServerSocket serverSocket = new ServerSocket(portNumber);
             Server server = new Server(1024);
             server.startServer();
         } catch (IOException e) {
