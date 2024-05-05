@@ -14,7 +14,7 @@ public class Server {
 
     private ServerSocket serverSocket;
     private Distribute distribute;
-    private static int maxClient = 3;
+    private static int maxClient = 2;
     private int clientCount = 0;
    private static int portNumber;
 
@@ -28,6 +28,7 @@ public class Server {
     public void startServer() {
 
         System.out.println("Server is starting...");
+        System.out.println("Waiting for clients to join...");
         try {
 
             while (!serverSocket.isClosed() && clientCount < maxClient) {
@@ -54,7 +55,7 @@ public class Server {
                 System.out.println("Client " + clientCount + " connected and received dominoes.");
             }
             if (clientCount == maxClient) {
-                System.out.println("No more than 3 connections are accepted.");
+                System.out.println("Now all the two clients have joined.");
                 closeServerSocket();
             }
         } catch (IOException e) {
@@ -68,7 +69,7 @@ public class Server {
         try {
             if (serverSocket != null && !serverSocket.isClosed()) {
                 serverSocket.close();
-                System.out.println("Server socket closed.");
+                System.out.println("Closing the server socket..");
             }
         } catch (IOException e) {
             System.out.println("Failed to close server socket: " + e.getMessage());
