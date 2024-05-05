@@ -130,17 +130,12 @@ public class Client extends Application {
     }
 
     private String promptForServerAddress() {
-        TextInputDialog dialog = new TextInputDialog("localhost");
+        TextInputDialog dialog = new TextInputDialog("Enter the server name");
         dialog.setTitle("Connect to Server");
         dialog.setHeaderText("Server Connection");
         dialog.setContentText("Please enter the server address:");
 
         Optional<String> result = dialog.showAndWait();
-//        if (result.isPresent()) {
-//            return result.get();
-//        } else {
-//            return "localhost";  // Default server address
-//        }
         return result.get();
     }
 
