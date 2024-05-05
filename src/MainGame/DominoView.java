@@ -2,8 +2,7 @@ package MainGame;
 
 
 
-import MainGame.Domino;
-import MainGame.PlayYard;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
@@ -11,18 +10,15 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.paint.Color;
 
 public class DominoView extends Pane {
-    private static final int TILE_WIDTH = 30;
-    private static final int TILE_HEIGHT = 60;
+    private static final int TILE_HEIGHT = 30;
+    private static final int TILE_WIDTH = 60;
     private static final int DOT_RADIUS = 2;
     private static final int DOT_MARGIN = 5;
-    private boolean faceUp;
     private Domino domino;
-    private boolean isHumanPiece; // Flag to indicate if this is a human piece
-
-    private static Domino lastPlayedDomino; // Reference to the last played domino (you need to manage this)
-
+    private Rectangle rect;
     private boolean isSelected = false; // Track selection state
     private static DominoView selectedDominoView = null;
+    private PlayYard playYard;
 
 
 
@@ -33,9 +29,9 @@ public class DominoView extends Pane {
      * Initializes the domino piece with specified properties and sets up its visual representation.
      * @param domino The domino object this view will represent.
      */
-    public DominoView(Domino domino) {
-
+    public DominoView(Domino domino, PlayYard playYard) {
         this.domino = domino;
+        this.playYard = playYard;
         createDominoView();
     }
 
@@ -47,8 +43,7 @@ public class DominoView extends Pane {
      */
     private void createDominoView() {
 
-        Rectangle rect = new Rectangle(TILE_HEIGHT, TILE_WIDTH, Color.WHITE);
-
+        rect = new Rectangle(TILE_WIDTH, TILE_HEIGHT, Color.WHITE);
         rect.setStroke(Color.BLACK);
         this.getChildren().add(rect);
 
@@ -56,11 +51,12 @@ public class DominoView extends Pane {
         leftHalf.setLayoutX(0);
 
         Pane rightHalf = createHalf(domino.getSide2());
-        rightHalf.setLayoutX((double) TILE_HEIGHT / 2);
+        rightHalf.setLayoutX((double) TILE_WIDTH / 2);
 
-        Line separator = new Line((double) TILE_HEIGHT / 2, 0, (double) TILE_HEIGHT / 2,
-                TILE_WIDTH);
+        Line separator = new Line((double) TILE_WIDTH / 2, 0, (double) TILE_WIDTH / 2,
+                TILE_HEIGHT);
         this.getChildren().addAll(leftHalf, rightHalf, separator);
+        this.setOnMouseClicked(this::handleMouseClick);
     }
 
     /**
@@ -88,38 +84,45 @@ public class DominoView extends Pane {
         return half;
     }
 
-    /**
-     * Sets a visual indicator on the domino to show if it is playable.
-     *
-     * @param playable If true, the domino border is set to green, otherwise to red.
-     */
-    public void setPlayableIndicator(boolean playable) {
-        if (playable) {
-            // Set the border to green
-            this.setStyle("-fx-border-color: green; -fx-border-width: 2;");
+
+    private void handleMouseClick(MouseEvent event) {
+        if (!isSelected) {
+            playYard.addDomino(domino, 1); // Add to the right for now
+            System.out.println("Domino added: " + domino); // Print domino added
+            select();
         } else {
-            // Set the border to red
-            this.setStyle("-fx-border-color: red; -fx-border-width: 2;");
+            deselect();
         }
     }
 
 
-    /**
-     * Clears any visual indicator from the domino, removing border styling.
-     */
-    public void clearIndicator() {
-        // Remove any border styling
-        this.setStyle("-fx-border-color: none;");
+    public void select() {
+        if (selectedDominoView != null) {
+            selectedDominoView.deselect(); // Deselect previously selected domino
+        }
+        isSelected = true;
+        selectedDominoView = this;
+        setIndicator();
     }
 
-    /**
-     * Returns the Domino object associated with this DominoView.
-     *
-     * @return The Domino object.
-     */
+    public void deselect() {
+        isSelected = false;
+        clearIndicator();
+        if (selectedDominoView == this) {
+            selectedDominoView = null;
+        }
+    }
 
-    public Domino getDomino() {
-        return this.domino;
+    public void setIndicator() {
+        // Apply the style directly to the rectangle
+        rect.setStrokeWidth(1); // Set stroke width to 1
+        rect.setStroke(Color.GREEN); // Change the color to green
+    }
+
+    public void clearIndicator() {
+        // Reset the rectangle's stroke to default
+        rect.setStrokeWidth(1); // Keep the line thin but visible
+        rect.setStroke(Color.BLACK); // Change the color back to black
     }
 
 
@@ -132,8 +135,8 @@ public class DominoView extends Pane {
      * @return A two-dimensional array of double values representing the x and y coordinates for each dot position.
      */
     private double[][] getDotPositions() {
-        double halfWidth = TILE_HEIGHT / 2; // The full width of each half
-        double quarterHeight = TILE_WIDTH / 4; // The quarter height of the domino piece
+        double halfWidth = (double) TILE_WIDTH / 2;
+        double quarterHeight = (double) TILE_HEIGHT / 4;
 
         // Define the dot positions for one half (either left or right)
         return new double[][] {

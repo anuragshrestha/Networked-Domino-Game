@@ -14,26 +14,27 @@ public class Server {
 
     private ServerSocket serverSocket;
     private Distribute distribute;
-    private static int maxClient = 3;
+    private static int maxClient = 2;
     private int clientCount = 0;
    private static int portNumber;
 
-    public Server(int port) throws IOException {
+    public Server(int portNumber) throws IOException {
 
         //this.serverSocket = serverSocket;
-        serverSocket = new ServerSocket(port);
+        serverSocket = new ServerSocket(portNumber);
         distribute = new Distribute();
     }
 
     public void startServer() {
 
         System.out.println("Server is starting...");
+        System.out.println("Waiting for clients to join...");
         try {
 
             while (!serverSocket.isClosed() && clientCount < maxClient) {
                 Socket socket = serverSocket.accept();
                 System.out.println("A new client has connected. Num of clients: " + (clientCount + 1));
-                if (clientCount >= maxClient) {
+                if (clientCount > maxClient) {
                     System.out.println("Max clients reached, refusing additional connections.");
                     socket.close();
                     continue;
@@ -54,7 +55,7 @@ public class Server {
                 System.out.println("Client " + clientCount + " connected and received dominoes.");
             }
             if (clientCount == maxClient) {
-                System.out.println("No more than 3 connections are accepted.");
+                System.out.println("Now all the two clients have joined.");
                 closeServerSocket();
             }
         } catch (IOException e) {
@@ -68,38 +69,38 @@ public class Server {
         try {
             if (serverSocket != null && !serverSocket.isClosed()) {
                 serverSocket.close();
-                System.out.println("Server socket closed.");
+                System.out.println("Closing the server socket..");
             }
         } catch (IOException e) {
             System.out.println("Failed to close server socket: " + e.getMessage());
         }
     }
 
-    private static void promptUser() throws IOException {
-
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("How many human players (clients) do you want? Select up to 3");
-        maxClient = Integer.parseInt(scanner.nextLine());
-        System.out.println("What is your port number?");
-        portNumber = Integer.parseInt(scanner.nextLine());
-        System.out.println("You chosed port number: " + portNumber);
-        try {
-            Properties prop = new Properties();
-            prop.setProperty("portNumber", String.valueOf(portNumber));
-            prop.store(new FileOutputStream("config.properties"), null);
-        } catch (IOException e) {
-            System.out.println("Error while writing to the properties file.");
-            e.printStackTrace();
-        }
-    }
+//    private static void promptUser() throws IOException {
+//
+//        Scanner scanner = new Scanner(System.in);
+//        System.out.println("How many human players (clients) do you want? Select up to 3");
+//        maxClient = Integer.parseInt(scanner.nextLine());
+//        System.out.println("What is your port number?");
+//        portNumber = Integer.parseInt(scanner.nextLine());
+//        System.out.println("You chosed port number: " + portNumber);
+//        try {
+//            Properties prop = new Properties();
+//            prop.setProperty("portNumber", String.valueOf(portNumber));
+//            prop.store(new FileOutputStream("config.properties"), null);
+//        } catch (IOException e) {
+//            System.out.println("Error while writing to the properties file.");
+//            e.printStackTrace();
+//        }
+//    }
 
 
 
     public static void main(String[] args) {
 
         try {
-           // promptUser();
-           // ServerSocket serverSocket = new ServerSocket(portNumber);
+            // promptUser();
+            // ServerSocket serverSocket = new ServerSocket(portNumber);
             Server server = new Server(1024);
             server.startServer();
         } catch (IOException e) {
