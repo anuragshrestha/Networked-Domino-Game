@@ -13,6 +13,10 @@ import java.util.List;
 import java.util.Properties;
 import java.util.Scanner;
 
+import javafx.scene.control.TextInputDialog;
+import java.util.Optional;
+
+
 public class Client extends Application {
     private Socket socket;
 
@@ -119,9 +123,27 @@ public class Client extends Application {
         primaryStage.setScene(scene);
         primaryStage.show();
 
+        String serverAddress = promptForServerAddress();
+
         // Connect to the server and setup dominoes asynchronously
-        connectToServer("localhost", 1024);
+        connectToServer(serverAddress, 1024);
     }
+
+    private String promptForServerAddress() {
+        TextInputDialog dialog = new TextInputDialog("localhost");
+        dialog.setTitle("Connect to Server");
+        dialog.setHeaderText("Server Connection");
+        dialog.setContentText("Please enter the server address:");
+
+        Optional<String> result = dialog.showAndWait();
+//        if (result.isPresent()) {
+//            return result.get();
+//        } else {
+//            return "localhost";  // Default server address
+//        }
+        return result.get();
+    }
+
 
     private void connectToServer(String host, int port) {
         new Thread(() -> {
