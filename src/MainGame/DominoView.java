@@ -31,50 +31,36 @@ public class DominoView extends Pane {
     /**
      * Constructor for creating a visual representation of a domino.
      * Initializes the domino piece with specified properties and sets up its visual representation.
-     *
      * @param domino The domino object this view will represent.
-     * @param faceUp Determines if the domino should be displayed face up or face down.
-     * @param isHumanPiece Indicates if this domino belongs to the human player, affecting interaction capabilities.
      */
-    public DominoView(Domino domino, boolean faceUp, boolean isHumanPiece) {
-        this.domino = domino; // Initialize the domino field
-        this.faceUp = faceUp;
-        this.isHumanPiece = isHumanPiece;
+    public DominoView(Domino domino) {
 
+        this.domino = domino;
         createDominoView();
     }
 
 
     /**
      * Creates the visual components of the domino and sets up event handlers.
-     * This includes creating the domino's rectangle, dots (if face up), and handling mouse click events for selection.
+     * This includes creating the domino's rectangle, dots (if face up), and
+     * handling mouse click events for selection.
      */
     private void createDominoView() {
-        // Adjust width and height for horizontal layout
-        Rectangle rect = new Rectangle(TILE_HEIGHT, TILE_WIDTH, faceUp ? Color.WHITE : Color.GRAY); // Note the swapped dimensions
+
+        Rectangle rect = new Rectangle(TILE_HEIGHT, TILE_WIDTH, Color.WHITE);
+
         rect.setStroke(Color.BLACK);
         this.getChildren().add(rect);
 
-        if (faceUp) {
-            Pane leftHalf = createHalf(domino.getSide1()); // Adjust to create left half
-            leftHalf.setLayoutX(0);
+        Pane leftHalf = createHalf(domino.getSide1());
+        leftHalf.setLayoutX(0);
 
-            Pane rightHalf = createHalf(domino.getSide2()); // Adjust to create right half
-            rightHalf.setLayoutX(TILE_HEIGHT / 2);
+        Pane rightHalf = createHalf(domino.getSide2());
+        rightHalf.setLayoutX((double) TILE_HEIGHT / 2);
 
-            Line separator = new Line(TILE_HEIGHT / 2, 0, TILE_HEIGHT / 2, TILE_WIDTH); // Vertical line for separation
-            this.getChildren().addAll(leftHalf, rightHalf, separator);
-        }
-
-        // Handle mouse click events for selection
-        this.setOnMouseClicked(event -> {
-            if (isHumanPiece && !isSelected) {
-                if (selectedDominoView != null) {
-                    selectedDominoView.deselect();
-                }
-                select();
-            }
-        });
+        Line separator = new Line((double) TILE_HEIGHT / 2, 0, (double) TILE_HEIGHT / 2,
+                TILE_WIDTH);
+        this.getChildren().addAll(leftHalf, rightHalf, separator);
     }
 
     /**
@@ -85,10 +71,10 @@ public class DominoView extends Pane {
      */
     private Pane createHalf(int value) {
         Pane half = new Pane();
-        half.setPrefSize(TILE_HEIGHT / 2, TILE_WIDTH); // Set the size for each half
+        half.setPrefSize((double) TILE_HEIGHT / 2, TILE_WIDTH);
 
-        double[][] positions = getDotPositions(); // Get the dot positions
-        boolean[][] dotPatterns = getDotPatterns(); // Get the dot patterns for the value
+        double[][] positions = getDotPositions();
+        boolean[][] dotPatterns = getDotPatterns();
 
         for (int i = 0; i < positions.length; i++) {
             if (dotPatterns[value][i]) {
@@ -136,22 +122,6 @@ public class DominoView extends Pane {
         return this.domino;
     }
 
-
-    /**
-     * Updates the appearance of the domino view based on its selection status and playability.
-     *
-     * @param isPlayable Indicates whether the domino is playable.
-     */
-    private void updateAppearance(boolean isPlayable) {
-        Rectangle rect = (Rectangle) this.getChildren().get(0); // Assuming the first child is the rectangle
-        if (isSelected) {
-            rect.setStroke(isPlayable ? Color.GREEN : Color.RED); // Green if playable, red if not
-            rect.setStrokeWidth(3); // Thicker border for selection
-        } else {
-            rect.setStroke(Color.BLACK);
-            rect.setStrokeWidth(1); // Normal border for deselection
-        }
-    }
 
     /**
      * Calculates the positions for the dots on a domino tile.
@@ -203,30 +173,5 @@ public class DominoView extends Pane {
                 {true, true, true, true, true, false, false}, // 5
                 {false, true, true, true, true, true, true}, // 6
         };
-    }
-
-
-    /**
-     * Deselects this domino view, updating its appearance to indicate it is not selected.
-     * This method is called when a user clicks on a different domino or when the selection is cleared programmatically.
-     * It also manages the static reference to the currently selected domino view, ensuring that only one domino can be selected at a time.
-     */
-    public void deselect() {
-        isSelected = false;
-        updateAppearance(false); // When deselected, the appearance is updated without considering playability
-        if (selectedDominoView == this) {
-            selectedDominoView = null;
-        }
-    }
-
-    /**
-     * Selects this domino view, updating its appearance to indicate it is selected.
-     * This method is called when a user clicks on this domino view. It sets the domino as selected
-     * and updates the static reference to track this as the currently selected domino view.
-     * Ensures that any previously selected domino is deselected.
-     */
-    public void select() {
-        isSelected = true;
-        selectedDominoView = this;
     }
 }

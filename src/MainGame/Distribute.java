@@ -8,6 +8,7 @@ public class Distribute {
     private List<Domino> deck;
     private List<Domino> humanHand;
     private List<Domino> computerHand;
+    private static final int DOMINOES_PER_PLAYER = 7;
 
     /**
      * Constructor for the Distribute class.
@@ -91,6 +92,22 @@ public class Distribute {
         }
         System.out.println("Cards remaining in deck: " + deck.size());
         return null;
+    }
+
+    /**
+     * Retrieves a hand for a client. Each call returns a different set of dominoes until exhausted.
+     *
+     * @return List<Domino> a list of Domino objects for one player.
+     */
+    public List<Domino> getNextHand() {
+        if (deck.size() < DOMINOES_PER_PLAYER) {
+            return null; // Not enough dominoes left to provide a full hand
+        }
+        List<Domino> hand = new LinkedList<>();
+        for (int i = 0; i < DOMINOES_PER_PLAYER; i++) {
+            hand.add(deck.removeFirst());
+        }
+        return hand;
     }
 }
 

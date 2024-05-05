@@ -2,11 +2,13 @@ package MainGame;
 
 
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class Domino {
+public class Domino implements Serializable {
     private int side1;
     private int side2;
+    private static final long serialVersionUID = 1L;
     private int offsetY;
 
 

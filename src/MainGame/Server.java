@@ -14,36 +14,51 @@ public class Server {
 
     private ServerSocket serverSocket;
     private Distribute distribute;
-    private static int maxClient;
+    private static int maxClient = 3;
+    private int clientCount = 0;
    private static int portNumber;
 
-    public Server(ServerSocket serverSocket) {
-        this.serverSocket = serverSocket;
-        this.distribute = new Distribute();
-        distribute.shuffleAndDistribute();
+    public Server(int port) throws IOException {
+
+        //this.serverSocket = serverSocket;
+        serverSocket = new ServerSocket(port);
+        distribute = new Distribute();
     }
 
     public void startServer() {
 
+        System.out.println("Server is starting...");
         try {
-            int clientCount = 0;
+
             while (!serverSocket.isClosed() && clientCount < maxClient) {
                 Socket socket = serverSocket.accept();
-                System.out.println("A new client has connected!");
-                List<Domino> clientHand = (clientCount == 0) ?
-                        distribute.getHumanHand() : distribute.getComputerHand();
+                System.out.println("A new client has connected. Num of clients: " + (clientCount + 1));
+                if (clientCount >= maxClient) {
+                    System.out.println("Max clients reached, refusing additional connections.");
+                    socket.close();
+                    continue;
+                }
+
+                List<Domino> clientHand = distribute.getNextHand();
+                if (clientHand == null) {
+                    System.out.println("No more dominoes available, refusing client connection.");
+                    socket.close();
+                    continue;
+                }
                 ClientHandler clientHandler = new ClientHandler(socket, clientHand);
 
                 Thread thread = new Thread(clientHandler);
                 thread.start();
                 clientCount++;
+
+                System.out.println("Client " + clientCount + " connected and received dominoes.");
             }
-            if (clientCount == 3) {
+            if (clientCount == maxClient) {
                 System.out.println("No more than 3 connections are accepted.");
                 closeServerSocket();
             }
         } catch (IOException e) {
-            System.out.println("You chosed more than three clients");
+            System.out.println("Error: You chosed more than three clients");
             e.printStackTrace();
         }
     }
@@ -51,11 +66,12 @@ public class Server {
 
     public void closeServerSocket() {
         try {
-            if (serverSocket != null) {
+            if (serverSocket != null && !serverSocket.isClosed()) {
                 serverSocket.close();
+                System.out.println("Server socket closed.");
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Failed to close server socket: " + e.getMessage());
         }
     }
 
@@ -82,9 +98,9 @@ public class Server {
     public static void main(String[] args) {
 
         try {
-            promptUser();
-            ServerSocket serverSocket = new ServerSocket(portNumber);
-            Server server = new Server(serverSocket);
+           // promptUser();
+           // ServerSocket serverSocket = new ServerSocket(portNumber);
+            Server server = new Server(1024);
             server.startServer();
         } catch (IOException e) {
             e.printStackTrace();

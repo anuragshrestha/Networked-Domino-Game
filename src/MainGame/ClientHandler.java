@@ -9,25 +9,24 @@ public class ClientHandler implements Runnable {
 
     public static ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
     private Socket socket;
+    private ObjectOutputStream objectOutputStream;
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
     private String clientUsername;
-    private List<Domino> hand; // The hand of dominoes for this client
 
     public ClientHandler(Socket socket, List<Domino> hand) {
+
+        this.socket = socket;
         try {
-            this.socket = socket;
-            this.hand = hand;
+            this.objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
             this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            this.clientUsername = bufferedReader.readLine();
             clientHandlers.add(this);
+            sendDominoesToClient(hand);
+            this.clientUsername = bufferedReader.readLine();
             broadcastMessage("SERVER: " + clientUsername + " has entered the chat.");
-
-            // Send the initial hand of dominoes to the client
-            sendMessageToClient("Your initial hand of dominoes: " + hand.toString());
         } catch (IOException e) {
-            closeEverything(socket, bufferedReader, bufferedWriter);
+           closeEvery();
         }
     }
 
@@ -38,7 +37,9 @@ public class ClientHandler implements Runnable {
         while (socket.isConnected()) {
             try {
                 messageFromClient = bufferedReader.readLine();
-                broadcastMessage(messageFromClient);
+                if (messageFromClient != null) {
+                    broadcastMessage(clientUsername + ": " + messageFromClient);
+                }
             } catch (IOException e) {
                 closeEverything(socket, bufferedReader, bufferedWriter);
                 break;
@@ -46,14 +47,32 @@ public class ClientHandler implements Runnable {
         }
     }
 
+
+    private void sendDominoesToClient(List<Domino> hand) {
+        try {
+            objectOutputStream.writeObject(hand);
+            objectOutputStream.flush();
+        } catch (IOException e) {
+            closeEvery();
+        }
+    }
+
+    private void closeEvery() {
+        try {
+            if (bufferedReader != null) bufferedReader.close();
+            if (objectOutputStream != null) objectOutputStream.close();
+            if (socket != null) socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void broadcastMessage(String messageToSend) {
         for (ClientHandler clientHandler : clientHandlers) {
             try {
-                if (!clientHandler.clientUsername.equals(clientUsername)) {
                     clientHandler.bufferedWriter.write(messageToSend);
                     clientHandler.bufferedWriter.newLine();
                     clientHandler.bufferedWriter.flush();
-                }
             } catch (IOException e) {
                 closeEverything(socket, bufferedReader, bufferedWriter);
             }
@@ -72,7 +91,7 @@ public class ClientHandler implements Runnable {
 
     public void removeClientHandler() {
 
-        broadcastMessage("SERVER: " + clientUsername + " has left the chat.");
+       // broadcastMessage("SERVER: " + clientUsername + " has left the chat.");
         clientHandlers.remove(this);
     }
 
