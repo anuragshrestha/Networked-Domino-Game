@@ -78,7 +78,7 @@ public class Server {
     private static void promptUser() throws IOException {
 
         Scanner scanner = new Scanner(System.in);
-        System.out.println("How many human players (client) do you want? Select up to 3");
+        System.out.println("How many human players (clients) do you want? Select up to 3");
         maxClient = Integer.parseInt(scanner.nextLine());
         System.out.println("What is your port number?");
         portNumber = Integer.parseInt(scanner.nextLine());
