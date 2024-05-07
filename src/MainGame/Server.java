@@ -146,7 +146,8 @@ public class Server {
                         ClientHandler clientHandler = new ClientHandler(clientSocket, clientHand, playYard);
                         new Thread(clientHandler).start();
                         ClientHandler.clientHandlers.add(clientHandler);
-                        System.out.println("Client " + ClientHandler.clientHandlers.size() + " connected and received dominoes.");
+                        System.out.println("Client " + ClientHandler.clientHandlers.size() +
+                                " connected and received dominoes.");
                     }
 
                     closeServerSocket();  // Close server socket as no more clients should be accepted
