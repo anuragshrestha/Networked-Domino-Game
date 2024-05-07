@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Scanner;
@@ -14,13 +15,17 @@ public class Server {
 
     private ServerSocket serverSocket;
     private Distribute distribute;
-    private static int maxClient = 2;
-    private int clientCount = 0;
+    private static final int MAX_CLIENTS= 2;
+    private List<Socket> clientSockets = new ArrayList<>();
    private static int portNumber;
+
+
+    private PlayYard playYard = new PlayYard(v -> {
+        System.out.println("PlayYard state changed");
+    });
 
     public Server(int portNumber) throws IOException {
 
-        //this.serverSocket = serverSocket;
         serverSocket = new ServerSocket(portNumber);
         distribute = new Distribute();
     }
@@ -31,76 +36,54 @@ public class Server {
         System.out.println("Waiting for clients to join...");
         try {
 
-            while (!serverSocket.isClosed() && clientCount < maxClient) {
+            while (!serverSocket.isClosed() && clientSockets.size() < MAX_CLIENTS) {
                 Socket socket = serverSocket.accept();
-                System.out.println("A new client has connected. Num of clients: " + (clientCount + 1));
-                if (clientCount > maxClient) {
-                    System.out.println("Max clients reached, refusing additional connections.");
-                    socket.close();
-                    continue;
+                System.out.println("A new client has connected. Num of clients: " + (clientSockets.size() + 1));
+                clientSockets.add(socket);
+
+                // Check if the maximum number of clients have connected
+                if (clientSockets.size() == MAX_CLIENTS) {
+                    System.out.println("Max clients reached, distributing dominoes.");
+                    for (Socket clientSocket : clientSockets) {
+                        List<Domino> clientHand = distribute.getNextHand();
+                        if (clientHand == null) {
+                            System.out.println("No more dominoes available, closing connection.");
+                            clientSocket.close();
+                            continue;
+                        }
+                        ClientHandler clientHandler = new ClientHandler(socket, clientHand, playYard);
+
+                        Thread thread = new Thread(clientHandler);
+                        thread.start();
+                        ClientHandler.clientHandlers.add(clientHandler);
+                        System.out.println("Client " + ClientHandler.clientHandlers.size() +
+                                " connected and received dominoes.");
+                    }
+                    closeServerSocket();
                 }
-
-                List<Domino> clientHand = distribute.getNextHand();
-                if (clientHand == null) {
-                    System.out.println("No more dominoes available, refusing client connection.");
-                    socket.close();
-                    continue;
-                }
-                ClientHandler clientHandler = new ClientHandler(socket, clientHand);
-
-                Thread thread = new Thread(clientHandler);
-                thread.start();
-                clientCount++;
-
-                System.out.println("Client " + clientCount + " connected and received dominoes.");
             }
-            if (clientCount == maxClient) {
-                System.out.println("Now all the two clients have joined.");
-                closeServerSocket();
-            }
-        } catch (IOException e) {
-            System.out.println("Error: You chosed more than three clients");
-            e.printStackTrace();
+        }
+        catch(IOException e){
+            System.out.println("An error occurred while accepting a connection: " + e.getMessage());
         }
     }
+
 
 
     public void closeServerSocket() {
         try {
             if (serverSocket != null && !serverSocket.isClosed()) {
                 serverSocket.close();
-                System.out.println("Closing the server socket..");
+                System.out.println("Server socket closed.");
             }
         } catch (IOException e) {
             System.out.println("Failed to close server socket: " + e.getMessage());
         }
     }
 
-//    private static void promptUser() throws IOException {
-//
-//        Scanner scanner = new Scanner(System.in);
-//        System.out.println("How many human players (clients) do you want? Select up to 3");
-//        maxClient = Integer.parseInt(scanner.nextLine());
-//        System.out.println("What is your port number?");
-//        portNumber = Integer.parseInt(scanner.nextLine());
-//        System.out.println("You chosed port number: " + portNumber);
-//        try {
-//            Properties prop = new Properties();
-//            prop.setProperty("portNumber", String.valueOf(portNumber));
-//            prop.store(new FileOutputStream("config.properties"), null);
-//        } catch (IOException e) {
-//            System.out.println("Error while writing to the properties file.");
-//            e.printStackTrace();
-//        }
-//    }
-
-
-
     public static void main(String[] args) {
 
         try {
-            // promptUser();
-            // ServerSocket serverSocket = new ServerSocket(portNumber);
             Server server = new Server(1024);
             server.startServer();
         } catch (IOException e) {

@@ -13,20 +13,45 @@ public class ClientHandler implements Runnable {
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
     private String clientUsername;
+    private PlayYard playYard;
 
-    public ClientHandler(Socket socket, List<Domino> hand) {
+    public ClientHandler(Socket socket, List<Domino> hand, PlayYard playYard) {
 
         this.socket = socket;
+        this.playYard = playYard;
         try {
             this.objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
             this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             clientHandlers.add(this);
+            playYard.addObserver(this::sendDominoUpdate);
             sendDominoesToClient(hand);
             this.clientUsername = bufferedReader.readLine();
             broadcastMessage("SERVER: " + clientUsername + " has entered the chat.");
         } catch (IOException e) {
            closeEvery();
+        }
+    }
+
+
+    private void sendDominoUpdate(Domino domino) {
+        for (ClientHandler client : clientHandlers) {
+            try {
+                client.objectOutputStream.writeObject(domino);
+                client.objectOutputStream.reset();
+                client.objectOutputStream.flush();
+            } catch (IOException e) {
+                closeEvery();
+            }
+        }
+    }
+
+    private void sendDominoesToClient(List<Domino> hand) {
+        try {
+            objectOutputStream.writeObject(hand);
+            objectOutputStream.flush();
+        } catch (IOException e) {
+            closeEvery();
         }
     }
 
@@ -47,15 +72,6 @@ public class ClientHandler implements Runnable {
         }
     }
 
-
-    private void sendDominoesToClient(List<Domino> hand) {
-        try {
-            objectOutputStream.writeObject(hand);
-            objectOutputStream.flush();
-        } catch (IOException e) {
-            closeEvery();
-        }
-    }
 
     private void closeEvery() {
         try {
@@ -91,7 +107,6 @@ public class ClientHandler implements Runnable {
 
     public void removeClientHandler() {
 
-       // broadcastMessage("SERVER: " + clientUsername + " has left the chat.");
         clientHandlers.remove(this);
     }
 

@@ -7,6 +7,7 @@ import java.util.function.Consumer;
 public class PlayYard {
 
     private List<Domino> dominosInPlay = new ArrayList<>();
+    private List<Consumer<Domino>> observers = new ArrayList<>();
     private Consumer<Void> onChange; // Callback to trigger GUI update
     private StringBuilder topRowString = new StringBuilder();
     private StringBuilder botRowString = new StringBuilder();
@@ -14,9 +15,8 @@ public class PlayYard {
     private int rightCount = 0; // Tracks the number of dominos on the right
 
 
-
     //private static final int MAX_PER_LINE = 1; // or any other number based on your requirement
-    private int[] chainEnds = new int[2]; // Stores the current ends of the domino chain
+    private int[] chainEnds = new int[2];
 
     /**
      * Constructs a new PlayYard object.
@@ -24,6 +24,10 @@ public class PlayYard {
      */
     public PlayYard(Consumer<Void> onChange) {
         this.onChange = onChange;
+    }
+
+    public void addObserver(Consumer<Domino> observer) {
+        observers.add(observer);
     }
 
     /**
@@ -36,19 +40,25 @@ public class PlayYard {
     public void addDomino(Domino domino, int side) {
 
         dominosInPlay.add(domino);
-        System.out.println("Domino added to PlayYard: " + domino); // Confirm addition in console
+        System.out.println("Domino added to PlayYard: " + domino);
+
+        notifyObservers(domino);
         if (onChange != null) {
             onChange.accept(null);
         }
 
     }
 
-
-    public List<Domino> getDominosInPlay() {
-        return dominosInPlay; // Ensure it returns the correct list type
+    private void notifyObservers(Domino domino) {
+        for (Consumer<Domino> observer : observers) {
+            observer.accept(domino);
+        }
     }
 
 
+    public List<Domino> getDominosInPlay() {
+        return dominosInPlay;
+    }
 
 }
 

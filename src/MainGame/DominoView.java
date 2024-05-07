@@ -19,7 +19,7 @@ public class DominoView extends Pane {
     private boolean isSelected = false; // Track selection state
     private static DominoView selectedDominoView = null;
     private PlayYard playYard;
-
+    private Client client;
 
 
 
@@ -29,10 +29,19 @@ public class DominoView extends Pane {
      * Initializes the domino piece with specified properties and sets up its visual representation.
      * @param domino The domino object this view will represent.
      */
-    public DominoView(Domino domino, PlayYard playYard) {
+    public DominoView(Domino domino, PlayYard playYard,Client client) {
+
         this.domino = domino;
         this.playYard = playYard;
+        this.client = client;
         createDominoView();
+        setOnMouseClicked(this::handleDominoSelected);
+    }
+
+    private void handleDominoSelected(MouseEvent event) {
+        playYard.addDomino(domino, 1); // Add to PlayYard
+        client.removeDominoFromHand(this.domino);
+        client.refreshHandDisplay(); // Call a new method to refresh the display
     }
 
 

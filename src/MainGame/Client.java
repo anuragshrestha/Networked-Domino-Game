@@ -15,12 +15,9 @@ import javafx.stage.Stage;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.List;
-import java.util.Properties;
-import java.util.Scanner;
+import java.util.*;
 
 import javafx.scene.control.TextInputDialog;
-import java.util.Optional;
 
 
 public class Client extends Application {
@@ -33,42 +30,9 @@ public class Client extends Application {
     private PlayYard playYard;
     private HBox dominoPane = new HBox(10);  // Horizontal layout for dominoes
     private Label statusLabel = new Label("Attempting to connect...");
+    private List<Domino> clientHand = new ArrayList<>();
 
 
-    private String username;
-
-//    public  Client (Socket socket, String username) {
-//        try {
-//
-//            this.socket = socket;
-//            this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-//            this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-//            this.username = username;
-//
-//        } catch (IOException e) {
-//            closeEverything(socket, bufferedReader, bufferedWriter);
-//        }
-//    }
-
-    public void sendMessage(){
-        try{
-            bufferedWriter.write(username);
-            bufferedWriter.newLine();
-            bufferedWriter.flush();
-
-            Scanner scanner = new Scanner(System.in);
-            while(socket.isConnected()){
-                String messageToSend = scanner.nextLine();
-                bufferedWriter.write(username +  messageToSend);
-                bufferedWriter.newLine();
-                bufferedWriter.flush();
-
-            }
-        }
-        catch (IOException e){
-           // closeEverything(socket, bufferedReader, bufferedWriter);
-        }
-    }
 
     public void listenFromMessage(){
         new Thread(new Runnable() {
@@ -93,29 +57,7 @@ public class Client extends Application {
 
     }
 
-//    public void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter){
-//
-//        ClientHandler.closeClient(socket, bufferedReader, bufferedWriter);
-//    }
-
     public static void main(String[] args)  {
-
-//        Properties prop = new Properties();
-//        try {
-//            prop.load(new FileInputStream("config.properties"));
-//            int portNumber = Integer.parseInt(prop.getProperty("portNumber"));
-//            System.out.println("You chosed port number: " + portNumber);
-//            Scanner scanner = new Scanner(System.in);
-//            System.out.println("Please enter your name:");
-//            String username = scanner.nextLine();
-//            Socket socket = new Socket("localhost", portNumber);
-//            Client client = new Client( socket, username);
-//            client.listenFromMessage();
-//            client.sendMessage();
-//        } catch (IOException e) {
-//            System.out.println("Error reading from the properties file.");
-//            e.printStackTrace();
-//        }
 
         launch(args);
     }
@@ -134,14 +76,22 @@ public class Client extends Application {
         playYardView.setVgap(5);
         playYardView.setOrientation(Orientation.HORIZONTAL);
         playYardView.setPadding(new Insets(10));
+        playYardView.setStyle("-fx-border-color: blue; -fx-border-width: 2px;");
 
-        // Add a status label to the pane for connection status updates
-        dominoPane.getChildren().add(statusLabel);
+        // Label below the play yard
+        Label playYardLabel = new Label("Below is the PlayYard");
+        playYardLabel.setPadding(new Insets(10));
 
-        VBox playArea = new VBox(10, playYardView); // Adjust layout as needed
+        VBox playArea = new VBox(10, playYardLabel, playYardView);
         playArea.setAlignment(Pos.CENTER);
+
+        // Status and dominoes pane at the top
+        VBox topArea = new VBox(10, statusLabel, dominoPane);
+        topArea.setAlignment(Pos.CENTER);
+
+        root.setTop(topArea);
         root.setCenter(playArea);
-        Scene scene = new Scene(dominoPane, 800, 200);
+        Scene scene = new Scene(root, 800, 600);
         primaryStage.setScene(scene);
         primaryStage.show();
 
@@ -162,10 +112,11 @@ public class Client extends Application {
 
 
     private void connectToServer(String host, int port) {
+
         new Thread(() -> {
             boolean connected = false;
             int attempts = 0;
-            while (!connected && attempts < 10) {  // Try to connect up to 10 times
+            while (!connected && attempts < 2) {
                 try (Socket socket = new Socket(host, port);
                      ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream())) {
 
@@ -177,12 +128,15 @@ public class Client extends Application {
                     connected = true;
 
                 } catch (IOException | ClassNotFoundException e) {
+
                     attempts++;
                     String errMsg = "Failed to connect or receive data (Attempt " + attempts + "): " + e.getMessage();
                     System.err.println(errMsg);
                     Platform.runLater(() -> statusLabel.setText(errMsg));
                     try {
-                        Thread.sleep(5000); // Wait 5 seconds before retrying
+                        List<Domino> dominoes = new ArrayList<>(); // Simulate receiving dominoes
+                        updateDominoes(dominoes);
+                        Thread.sleep(3000); // Wait 5 seconds before retrying
                     } catch (InterruptedException ie) {
                         Thread.currentThread().interrupt();
                     }
@@ -193,17 +147,35 @@ public class Client extends Application {
     private void updateDominoes(List<Domino> dominoes) {
 
         for (Domino domino : dominoes) {
-            DominoView dominoView = new DominoView(domino, playYard);
+            DominoView dominoView = new DominoView(domino, playYard, this);  // here
             dominoPane.getChildren().add(dominoView);
         }
     }
 
-    private void updatePlayYardView(Void unused) {
+    public void removeDominoFromHand(Domino domino) {
+
+        clientHand.remove(domino);
+        updateDominoes(new ArrayList<>(clientHand));
+    }
+
+    public void refreshHandDisplay() {
+
+        dominoPane.getChildren().clear();  // Clear the visual display of dominoes
+        for (Domino domino : clientHand) {
+            dominoPane.getChildren().add(new DominoView(domino, playYard, this));
+        }
+    }
+
+    public void updatePlayYardView(Void unused) {
         playYardView.getChildren().clear();
         for (Domino domino : playYard.getDominosInPlay()) {
-            DominoView dominoView = new DominoView(domino, playYard);
+            DominoView dominoView = new DominoView(domino, playYard, this);
             playYardView.getChildren().add(dominoView);
         }
+    }
+
+    public List<Domino> getClientHand() {
+        return new ArrayList<>(clientHand);
     }
 }
 
