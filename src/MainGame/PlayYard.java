@@ -30,6 +30,12 @@ public class PlayYard {
         observers.add(observer);
     }
 
+    private void notifyObservers(Domino domino) {
+        for (Consumer<Domino> observer : observers) {
+            observer.accept(domino);
+        }
+    }
+
     /**
      * Adds a domino to the play yard either on the left or right side, based on the specified side.
      * Adjusts the visual representation of the play yard accordingly.
@@ -49,11 +55,7 @@ public class PlayYard {
 
     }
 
-    private void notifyObservers(Domino domino) {
-        for (Consumer<Domino> observer : observers) {
-            observer.accept(domino);
-        }
-    }
+
 
 
     public List<Domino> getDominosInPlay() {
