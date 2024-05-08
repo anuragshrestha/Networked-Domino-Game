@@ -15,7 +15,6 @@ public class Server {
 
 
     private static int maxClient;
-    private static int portNumber;
     private PlayYard playYard;
     private Scanner scanner;
     private Random random;
@@ -46,7 +45,7 @@ public class Server {
                 boolean lastClient = (clientHandlers.size() + 1 == maxClient);
                 clientHandler = new ClientHandler(socket, this, clientHand, lastClient);
                 clientHandlers.add(clientHandler);
-                System.out.println(" The size of clienthandlers is: " + clientHandlers.size());
+                System.out.println(" The size of client handlers is: " + clientHandlers.size());
                 new Thread(clientHandler).start();
             }
 
@@ -124,17 +123,6 @@ public class Server {
         Scanner scanner = new Scanner(System.in);
         System.out.println("How many human players (client) do you want? Select up to 3");
         maxClient = Integer.parseInt(scanner.nextLine());
-        System.out.println("What is your port number?");
-        portNumber = Integer.parseInt(scanner.nextLine());
-        System.out.println("You chosed port number: " + portNumber);
-        try {
-            Properties prop = new Properties();
-            prop.setProperty("portNumber", String.valueOf(portNumber));
-            prop.store(new FileOutputStream("config.properties"), null);
-        } catch (IOException e) {
-            System.out.println("Error while writing to the properties file.");
-            e.printStackTrace();
-        }
     }
 
     public List<ClientHandler> clientHandlers() {
@@ -149,6 +137,7 @@ public class Server {
 
         try {
             promptUser();
+            int portNumber = 49155;
             ServerSocket serverSocket = new ServerSocket(portNumber);
             Server server = new Server(serverSocket);
             server.startServer();
