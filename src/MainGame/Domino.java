@@ -2,18 +2,16 @@ package MainGame;
 
 
 
-import java.io.Serializable;
 import java.util.Objects;
 
-public class Domino implements Serializable {
+public class Domino {
     private int side1;
     private int side2;
-    private static final long serialVersionUID = 1L;
     private int offsetY;
 
 
     /**
-     * Constructor for the Domino class. Initializes a domino with specified side values.
+     * Constructor for the domino.Domino class. Initializes a domino with specified side values.
      * An optional offsetY is initialized for potential use in graphical representations or
      * game logic requiring vertical positioning.
      *
@@ -63,7 +61,7 @@ public class Domino implements Serializable {
      * Two dominoes are considered equal if they have the same side1 and side2 values, regardless of their order.
      *
      * @param obj The object to compare this domino against.
-     * @return true if the given object represents a Domino equivalent to this domino, false otherwise.
+     * @return true if the given object represents a domino.Domino equivalent to this domino, false otherwise.
      */
     @Override
     public boolean equals(Object obj) {
@@ -75,7 +73,7 @@ public class Domino implements Serializable {
 
 
     /**
-     * Generates a hash code for a Domino object.
+     * Generates a hash code for a domino.Domino object.
      * The hash code is calculated using both sides of the domino, ensuring
      * that the order of sides does not affect the hash code.
      *
