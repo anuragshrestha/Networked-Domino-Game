@@ -2,7 +2,6 @@ package MainGame;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.Properties;
 import java.util.Scanner;
 
 public class Client {
@@ -79,16 +78,13 @@ public class Client {
         Scanner scanner = new Scanner(System.in);
 
         try {
-            // Prompt for the port number
-            System.out.println("Please enter the port number:");
-            int portNumber = Integer.parseInt(scanner.nextLine());
             // Prompt for the hostname
             System.out.println("Please enter the hostname:");
             String hostname = scanner.nextLine();
             // Prompt for the username
-            System.out.println("Please enter your name:");
+            System.out.println("Please enter your user name:");
             String username = scanner.nextLine();
-            Socket socket = new Socket(hostname, portNumber);
+            Socket socket = new Socket(hostname, 49155);
             Client client = new Client(socket, username);
             client.listenFromMessage();
             client.sendMessage();
