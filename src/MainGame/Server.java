@@ -83,7 +83,7 @@ public class Server {
         }
 
         clientHandler. promptPlayerToMove(currentPlayerIndex);
-        currentPlayerIndex = (currentPlayerIndex + 1) % clientHandlers.size();
+        currentPlayerIndex += 1;
     }
 
 
