@@ -75,27 +75,29 @@ public class Client {
         ClientHandler.closeClient(socket, bufferedReader, bufferedWriter);
     }
 
-    public static void main(String[] args) throws IOException {
-        Properties prop = new Properties();
-        try {
-            prop.load(new FileInputStream("config.properties"));
-            int portNumber = Integer.parseInt(prop.getProperty("portNumber"));
-            System.out.println("You chosed port number: " + portNumber);
-            Scanner scanner = new Scanner(System.in);
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
 
+        try {
+            // Prompt for the port number
+            System.out.println("Please enter the port number:");
+            int portNumber = Integer.parseInt(scanner.nextLine());
+            // Prompt for the hostname
+            System.out.println("Please enter the hostname:");
+            String hostname = scanner.nextLine();
+            // Prompt for the username
             System.out.println("Please enter your name:");
             String username = scanner.nextLine();
-
-            System.out.println("Please enter the hostname:");
-            String hostname = scanner.nextLine(); // Prompting the user for the hostname
-
-            Socket socket = new Socket(hostname, portNumber); // Using the user input hostname
+            Socket socket = new Socket(hostname, portNumber);
             Client client = new Client(socket, username);
             client.listenFromMessage();
             client.sendMessage();
+        } catch (NumberFormatException e) {
+            System.out.println("Error: Invalid port number format. Please enter a valid number.");
         } catch (IOException e) {
-            System.out.println("Error reading from the properties file.");
-            e.printStackTrace();
+            System.out.println("Error connecting to the server. Please check the hostname and port number.");
+        } finally {
+            scanner.close();
         }
     }
 
