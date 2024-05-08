@@ -127,7 +127,7 @@ public class Client {
             bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             System.out.println("Connected to the server at " + host + " on " + port);
             listenForMessages();
-            sendMessages();
+            //sendMessages();
         } catch (IOException e) {
             System.out.println("Error connecting to the server: " + e.getMessage());
             closeEverything();
