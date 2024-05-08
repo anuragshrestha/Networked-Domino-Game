@@ -76,7 +76,6 @@ public class Client {
     }
 
     public static void main(String[] args) throws IOException {
-
         Properties prop = new Properties();
         try {
             prop.load(new FileInputStream("config.properties"));
@@ -84,13 +83,14 @@ public class Client {
             System.out.println("You chosed port number: " + portNumber);
             Scanner scanner = new Scanner(System.in);
 
-            System.out.println("Please enter the host name:");
-            String hostName = scanner.nextLine();
-            Socket socket = new Socket(hostName, portNumber);
             System.out.println("Please enter your name:");
             String username = scanner.nextLine();
 
-            Client client = new Client( socket, username);
+            System.out.println("Please enter the hostname:");
+            String hostname = scanner.nextLine(); // Prompting the user for the hostname
+
+            Socket socket = new Socket(hostname, portNumber); // Using the user input hostname
+            Client client = new Client(socket, username);
             client.listenFromMessage();
             client.sendMessage();
         } catch (IOException e) {
@@ -98,6 +98,7 @@ public class Client {
             e.printStackTrace();
         }
     }
+
 }
 
 
