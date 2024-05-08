@@ -1,7 +1,5 @@
 package MainGame;
 
-
-
 import java.util.Objects;
 
 public class Domino {
