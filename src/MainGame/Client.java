@@ -255,7 +255,7 @@ public class Client extends Application {
 
         String serverAddress = promptForServerAddress();
         // Connect to the server and setup dominoes asynchronously
-        connectToServer(serverAddress, 1234);
+        connectToServer("localhost", 1234);
     }
 
     private String promptForServerAddress() {
