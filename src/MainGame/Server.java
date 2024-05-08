@@ -1,87 +1,162 @@
-
-
 package MainGame;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class Server {
+
     private ServerSocket serverSocket;
+    public  List<ClientHandler> clientHandlers = new ArrayList<>();
+    private int currentPlayerIndex = 0;
     private Distribute distribute;
-    private int clientCount = 0;
-    private static final int MAX_CLIENTS = 2;
-
-    private List<Socket> clientSockets = new ArrayList<>();
-
-    List<Domino> clientHand;
 
 
-    private PlayYard playYard = new PlayYard(v -> {
-        System.out.println("PlayYard state changed");
-    });
+    private static int maxClient;
+    private static int portNumber;
+    private PlayYard playYard;
+    private Scanner scanner;
+    private Random random;
+    private ClientHandler clientHandler;
 
-
-
-    public Server(int port) throws IOException {
-        serverSocket = new ServerSocket(port);
-        distribute = new Distribute();
+    public Server(ServerSocket serverSocket) {
+        this.serverSocket = serverSocket;
+        this.playYard = new PlayYard();
     }
 
     public void startServer() {
-        System.out.println("Server is starting...");
+
+        scanner = new Scanner(System.in);
+        random = new Random();
+
+        System.out.println("Server started. Waiting for players...");
+
         try {
-            while (!serverSocket.isClosed() && clientSockets.size() < MAX_CLIENTS) {
-                Socket socket = serverSocket.accept();  // Accept new connections
-                System.out.println("Client connection attempt: " + (clientSockets.size() + 1));
-                clientSockets.add(socket);
+            while (!serverSocket.isClosed() && clientHandlers.size() < maxClient) {
+                Socket socket = serverSocket.accept();
+                System.out.println("A new client has connected!");
 
-                // Check if the maximum number of clients have connected
-                if (clientSockets.size() == MAX_CLIENTS) {
-                    System.out.println("Max clients reached, distributing dominoes.");
-                    for (Socket clientSocket : clientSockets) {
-                        List<Domino> clientHand = distribute.getNextHand();
-                        if (clientHand == null) {
-                            System.out.println("No more dominoes available, closing connection.");
-                            clientSocket.close();
-                            continue;
-                        }
-                        ClientHandler clientHandler = new ClientHandler(clientSocket, clientHand, playYard);
-                        new Thread(clientHandler).start();
-                        ClientHandler.clientHandlers.add(clientHandler);
-                        System.out.println("Client " + ClientHandler.clientHandlers.size() +
-                                " connected and received dominoes.");
-                    }
-
-                    closeServerSocket();  // Close server socket as no more clients should be accepted
+                if (clientHandlers.isEmpty()) {
+                    distribute = new Distribute(maxClient);
                 }
+
+                List<Domino> clientHand = distribute.getHand(clientHandlers.size());
+                boolean lastClient = (clientHandlers.size() + 1 == maxClient);
+                clientHandler = new ClientHandler(socket, this, clientHand, lastClient);
+                clientHandlers.add(clientHandler);
+                System.out.println(" The size of clienthandlers is: " + clientHandlers.size());
+                new Thread(clientHandler).start();
             }
+
+            if (clientHandlers.size() == maxClient) {
+                startGame();
+            }
+
         } catch (IOException e) {
-            System.out.println("An error occurred while accepting a connection: " + e.getMessage());
+            System.out.println("You chosed more than three clients");
+            e.printStackTrace();
+        }
+    }
+
+
+    private void startGame() {
+        System.out.println("All players are connected. Starting the game...");
+        broadcastMessage("Game has started. Good luck!");
+        ClientHandler currentPlayer = clientHandlers.get(currentPlayerIndex);
+        processPlayerMove(currentPlayer);
+
+
+        // here I have to start the main logic of the game.
+//        this.game = new DominoGame(distribute);
+//        game.start();
+    }
+
+
+
+
+    public void processPlayerMove(ClientHandler player) {
+
+        if (clientHandlers.get(currentPlayerIndex) != player) {
+            player.sendMessageToClient("It's not your turn.");
+            return;
+        }
+
+        clientHandler. promptPlayerToMove(currentPlayerIndex);
+        currentPlayerIndex = (currentPlayerIndex + 1) % clientHandlers.size();
+    }
+
+
+    private boolean validateMove(String move, ClientHandler player) {
+        // Implement move validation logic based on PlayYard and Domino rules
+        // Placeholder for move validation
+        // This would involve checking the move against the playYard rules, handling drawing from the boneyard, etc.
+        return true;
+    }
+
+    private void broadcastGameState() {
+        String state = "Current board: ";
+        for (ClientHandler client : clientHandlers) {
+            client.sendMessageToClient(state);
+            client.sendMessageToClient(playYard.displayPlayYard());
+        }
+    }
+
+    private void broadcastMessage(String message) {
+        for (ClientHandler client : clientHandlers) {
+            client.sendMessageToClient(message);
         }
     }
 
     public void closeServerSocket() {
         try {
-            if (serverSocket != null && !serverSocket.isClosed()) {
+            if (serverSocket != null) {
                 serverSocket.close();
-                System.out.println("Server socket closed.");
             }
         } catch (IOException e) {
-            System.out.println("Failed to close server socket: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
-    public static void main(String[] args) {
+    private static void promptUser() throws IOException {
+
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("How many human players (client) do you want? Select up to 3");
+        maxClient = Integer.parseInt(scanner.nextLine());
+        System.out.println("What is your port number?");
+        portNumber = Integer.parseInt(scanner.nextLine());
+        System.out.println("You chosed port number: " + portNumber);
         try {
-            int port = 1234;
-            Server server = new Server(port);
+            Properties prop = new Properties();
+            prop.setProperty("portNumber", String.valueOf(portNumber));
+            prop.store(new FileOutputStream("config.properties"), null);
+        } catch (IOException e) {
+            System.out.println("Error while writing to the properties file.");
+            e.printStackTrace();
+        }
+    }
+
+    public List<ClientHandler> clientHandlers() {
+        return clientHandlers;
+    }
+
+    public int numOfClients() {
+        return maxClient;
+    }
+
+    public static void main(String[] args) {
+
+        try {
+            promptUser();
+            ServerSocket serverSocket = new ServerSocket(portNumber);
+            Server server = new Server(serverSocket);
             server.startServer();
         } catch (IOException e) {
-            System.out.println("Failed to start the server: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 }
+
+
 
