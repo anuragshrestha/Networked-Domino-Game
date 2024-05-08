@@ -83,9 +83,13 @@ public class Client {
             int portNumber = Integer.parseInt(prop.getProperty("portNumber"));
             System.out.println("You chosed port number: " + portNumber);
             Scanner scanner = new Scanner(System.in);
+
+            System.out.println("Please enter the host name:");
+            String hostName = scanner.nextLine();
+            Socket socket = new Socket(hostName, portNumber);
             System.out.println("Please enter your name:");
             String username = scanner.nextLine();
-            Socket socket = new Socket("localhost", portNumber);
+
             Client client = new Client( socket, username);
             client.listenFromMessage();
             client.sendMessage();
