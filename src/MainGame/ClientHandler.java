@@ -59,6 +59,16 @@ public class ClientHandler implements Runnable {
 
     }
 
+    private void processDominoRotation(int dominoIndex) {
+        if (dominoIndex >= 0 && dominoIndex < hand.size()) {
+            Domino domino = hand.get(dominoIndex);
+            domino.rotate();
+            System.out.println("Domino at index " + dominoIndex + " rotated: " + domino);
+        } else {
+            System.out.println("Invalid index for domino rotation.");
+        }
+    }
+
 
 
     private void sendInitialHand(List<Domino> hand) {
@@ -90,8 +100,11 @@ public class ClientHandler implements Runnable {
                 messageFromClient = bufferedReader.readLine();
                 if (messageFromClient.startsWith("PLAY_DOMINO")) {
                     int index = Integer.parseInt(messageFromClient.split(" ")[1]);
-                    System.out.println("the index of domino selcted is: " + index);
+                    System.out.println("the index of domino selected is: " + index);
                     processDominoPlay(index);
+                } else if(messageFromClient.startsWith("Rotate-Domino")){
+                    int index = Integer.parseInt(messageFromClient.split(" ")[1]);
+                    processDominoRotation(index);
                 }
             }
         } catch (IOException e) {
