@@ -11,119 +11,223 @@ public class Client {
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
     private String username;
+    private int playerIndex; // Index to identify which hand to use
 
-    private List<Domino> hand = new ArrayList<>(); // List to hold the client's hand of dominos
-
+    private List<Domino> hand;
     private PlayYard playYard;
+    private Distribute distribute; // Distribute object to manage hands and deck
 
-    public Client(Socket socket, String username) {
+    private Server server;
+    private static String host;
+    private int port = 49155;
+
+    public Client(String username, int playerIndex) {
+
+        this.username = username;
+        this.playerIndex = playerIndex;
+        this.server = server;
+        this.playYard = new PlayYard(); // Initialize PlayYard
+
+
         try {
-            this.socket = socket;
-            this.username = username;
+            socket = new Socket(host, port);
             this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            // Send the username to the server
             bufferedWriter.write(username);
             bufferedWriter.newLine();
             bufferedWriter.flush();
         } catch (IOException e) {
-            closeEverything(socket, bufferedReader, bufferedWriter);
+            closeEverything(bufferedReader, bufferedWriter);
         }
     }
+
+    public  void connectToServer(String host, int port){
+
+        try {
+
+            bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+            bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            System.out.println("Connected to the server at " + host + " on " + port);
+            listenForMessage();
+            sendMessage();
+        } catch (IOException e) {
+            System.out.println("Error connecting to the server: " + e.getMessage());
+            closeEverything(bufferedReader, bufferedWriter);
+        }
+    }
+
+//    public void sendMessage() {
+//        Scanner scanner = new Scanner(System.in);
+//        try {
+//            while (socket.isConnected()) {
+//
+//                System.out.println("Enter the index of the domino to play:");
+//                String input = scanner.nextLine().trim();
+//
+//                try {
+//                    int index = Integer.parseInt(input);
+//                    if (index >= 0 && index < hand.size()) {
+//                        Domino selectedDomino = this.hand.get(index);
+//                        playYard.addDomino(selectedDomino, 0); // Assuming always to the right side for simplicity
+//                        hand.remove(index);
+//                        System.out.println("Domino played.");
+//
+//                        // Send a message to the server with the index of the domino played
+//                        bufferedWriter.write("PLAY_DOMINO " + index);
+//                        bufferedWriter.newLine();
+//                        bufferedWriter.flush();
+//                    } else {
+//                        System.out.println("Invalid index. Please choose a valid index.");
+//                    }
+//                } catch (NumberFormatException e) {
+//                    System.out.println("Invalid input. Please enter a numeric index.");
+//                } catch (IOException e) {
+//                    throw new RuntimeException(e);
+//                }
+//            }
+//        } finally {
+//            scanner.close();
+//        }
+//    }
+
+
 
     public void sendMessage() {
         Scanner scanner = new Scanner(System.in);
         try {
             while (socket.isConnected()) {
-                System.out.println("Enter 'P' to play, 'D' to draw, or 'Q' to quit:");
-                String command = scanner.nextLine().trim().toUpperCase();
+                System.out.println("Select an action: Play (P), Draw (D), or Quit (Q):");
+                String action = scanner.nextLine().trim();
 
-                switch (command) {
-                    case "P":
-                        playDomino(scanner);
-                        break;
-                    case "D":
-                        drawDomino();
-                        break;
-                    case "Q":
-                        bufferedWriter.write("QUIT");
+                if ("Q".equalsIgnoreCase(action)) {
+                    System.out.println("Game ended by user.");
+                    bufferedWriter.write("QUIT_GAME");
+                    bufferedWriter.newLine();
+                    bufferedWriter.flush();
+                    break;
+                }
+
+                if ("D".equalsIgnoreCase(action)) {
+                    if (!playYard.hasPlaybleDomino(playYard,hand)) {
+                        // Assuming the server handles the draw and sends back the new domino and state
+                        bufferedWriter.write("DRAW_DOMINO");
                         bufferedWriter.newLine();
                         bufferedWriter.flush();
-                        System.out.println("Quitting the game...");
-                        return;
-                    default:
-                        System.out.println("Invalid input. Please enter 'P' to play, 'D' to draw, or 'Q' to quit.");
-                        break;
+                        System.out.println("You have drawn from the deck. Please select a piece to play:");
+                    } else {
+                        System.out.println("You have a playable piece. You cannot draw from the deck now.");
+                        continue;
+                    }
+                }
+
+                if ("P".equalsIgnoreCase(action)) {
+                    System.out.println("Your hand: " + hand);
+                    System.out.println("Select an index of piece to play:");
+                    String indexInput = scanner.nextLine().trim();
+
+                    if (indexInput.matches("\\d+")) {
+                        int index = Integer.parseInt(indexInput);
+                        if (index >= 0 && index < hand.size()) {
+                            Domino selectedDomino = hand.get(index);
+
+                            System.out.println("Add to Left [L] or Right [R]?");
+                            String sideChoice = scanner.nextLine().trim();
+                            int side = "L".equalsIgnoreCase(sideChoice) ? 0 : 1;
+
+                            System.out.println("Do you want to rotate the domino? (yes/no):");
+                            boolean rotated = "yes".equalsIgnoreCase(scanner.nextLine().trim());
+                            if (rotated) {
+                                selectedDomino.rotate();
+                            }
+
+                            if (playYard.hasPlaybleDomino(playYard,hand)) {
+                                playYard.addDomino(selectedDomino, side);
+                                hand.remove(index);
+                                bufferedWriter.write("PLAY_DOMINO " + index + " " + side + " " + rotated);
+                                bufferedWriter.newLine();
+                                bufferedWriter.flush();
+                                System.out.println("Domino played.");
+                            } else {
+                                if (rotated) { // Rotate back if not playable
+                                    selectedDomino.rotate();
+                                }
+                                System.out.println("This domino cannot be played. Please select another one or draw from the deck.");
+                            }
+                        } else {
+                            System.out.println("Invalid index. Please select a valid piece from your hand.");
+                        }
+                    } else {
+                        System.out.println("Invalid input. Please enter a numeric index.");
+                    }
                 }
             }
         } catch (IOException e) {
-            closeEverything(socket, bufferedReader, bufferedWriter);
+            e.printStackTrace();
         } finally {
             scanner.close();
         }
     }
 
-    private void playDomino(Scanner scanner) throws IOException {
-        System.out.println("Choose an index of domino to play:");
-
-        String index = scanner.nextLine().trim();
-
-        if (index.matches("\\d+")) {
-            bufferedWriter.write("PLAY " + index);
-            bufferedWriter.newLine();
-            bufferedWriter.flush();
-
-            System.out.println("Add to Left [L] or Right [R]?");
-            String side = scanner.nextLine().trim().toUpperCase();
-            bufferedWriter.write("SIDE " + side);
-            bufferedWriter.newLine();
-            bufferedWriter.flush();
-
-            System.out.println("Do you want to rotate the domino? (Yes/No):");
-            String rotate = scanner.nextLine().trim().toUpperCase();
-            bufferedWriter.write("ROTATE " + rotate);
-            Domino selectedDomino = hand.get(Integer.parseInt(index));
-            playYard.addDomino(selectedDomino, Integer.parseInt(side));
-
-
-
-            bufferedWriter.newLine();
-            bufferedWriter.flush();
-        } else {
-            System.out.println("Invalid index. Please enter a valid number.");
-        }
-    }
-
-    private void drawDomino() throws IOException {
-        bufferedWriter.write("DRAW");
-        bufferedWriter.newLine();
-        bufferedWriter.flush();
-    }
 
     public void listenForMessage() {
         new Thread(() -> {
             while (socket.isConnected()) {
                 try {
                     String messageFromServer = bufferedReader.readLine();
-                    System.out.println(messageFromServer);
+                    if (messageFromServer != null) {
+                        if (messageFromServer.startsWith("GAME_STATE:")) {
+                            System.out.println(messageFromServer.replace("GAME_STATE: ", ""));
+                        } else if (messageFromServer.startsWith("INIT_HAND")) {
+                            handleInitHand(messageFromServer.replace("INIT_HAND ", ""));
+                        } else {
+                            System.out.println(messageFromServer);
+                        }
+                    } else {
+                        throw new IOException("Server closed the connection.");
+                    }
                 } catch (IOException e) {
-                    closeEverything(socket, bufferedReader, bufferedWriter);
+                    System.out.println("Lost connection to server. Closing everything...");
+                    closeEverything(bufferedReader, bufferedWriter);
+                    break;
                 }
             }
         }).start();
     }
 
-    private void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
+    private void handleInitHand(String handData) {
+        hand = parseHand(handData);
+        System.out.println("Received initial hand from server: " + hand);
+    }
+
+    private List<Domino> parseHand(String handData) {
+        List<Domino> parsedHand = new ArrayList<>();
+        String[] dominoStrings = handData.split(";");
+        for (String dominoStr : dominoStrings) {
+            String[] sides = dominoStr.split(",");
+            if (sides.length == 2) {
+                try {
+                    int side1 = Integer.parseInt(sides[0]);
+                    int side2 = Integer.parseInt(sides[1]);
+                    parsedHand.add(new Domino(side1, side2));
+                } catch (NumberFormatException e) {
+                    System.out.println("Error parsing domino data: " + e.getMessage());
+                }
+            }
+        }
+        return parsedHand;
+    }
+
+
+
+
+
+
+
+    private void closeEverything(BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
         try {
-            if (bufferedReader != null) {
-                bufferedReader.close();
-            }
-            if (bufferedWriter != null) {
-                bufferedWriter.close();
-            }
-            if (socket != null) {
-                socket.close();
-            }
+            if (bufferedReader != null) bufferedReader.close();
+            if (bufferedWriter != null) bufferedWriter.close();
+            if (socket != null) socket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -132,19 +236,17 @@ public class Client {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Enter the server's hostname:");
-        String hostname = scanner.nextLine();
+         host = scanner.nextLine();
         System.out.println("Enter your username:");
         String username = scanner.nextLine();
+        System.out.println("Enter your player index (0 or 1 for testing):");
+        int playerIndex = Integer.parseInt(scanner.nextLine()); // This is typically managed by the server
 
-        try {
-            Socket socket = new Socket(hostname, 49155); // Port number should be consistent with server settings
-            Client client = new Client(socket, username);
-            client.listenForMessage();
-            client.sendMessage();
-        } catch (IOException e) {
-            System.out.println("Error connecting to the server: " + e.getMessage());
-        } finally {
+
+            Client client = new Client(username, playerIndex);
+            client.connectToServer(host, client.port);
+
             scanner.close();
-        }
+
     }
 }

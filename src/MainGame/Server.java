@@ -14,7 +14,7 @@ public class Server {
     private Distribute distribute;
 
 
-    private static int maxClient;
+    private static int maxClient = 2;
     private PlayYard playYard;
     private Scanner scanner;
     private Random random;
@@ -47,15 +47,27 @@ public class Server {
                 clientHandlers.add(clientHandler);
                 System.out.println(" The size of client handlers is: " + clientHandlers.size());
                 new Thread(clientHandler).start();
-            }
+                if (clientHandlers.size() == maxClient) {
+                    startGame();
+                }
 
-            if (clientHandlers.size() == maxClient) {
-                startGame();
             }
 
         } catch (IOException e) {
-            System.out.println("You chosed more than three clients");
+            System.out.println("An error occurred while accepting new clients: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    public synchronized void addDominoToPlayYard(Domino domino, int side) {
+        playYard.addDomino(domino, side);
+        broadcastGameState(); // Broadcast updated PlayYard after adding domino
+    }
+
+    public void broadcastGameState() {
+        String state =  playYard.displayPlayYard();
+        for (ClientHandler client : clientHandlers) {
+            client.sendMessageToClient(state);
         }
     }
 
@@ -63,14 +75,14 @@ public class Server {
     private void startGame() {
         System.out.println("All players are connected. Starting the game...");
         broadcastMessage("Game has started. Good luck!");
+
         ClientHandler currentPlayer = clientHandlers.get(currentPlayerIndex);
         processPlayerMove(currentPlayer);
 
-
-        // here I have to start the main logic of the game.
-//        this.game = new DominoGame(distribute);
-//        game.start();
     }
+
+
+
 
 
 
@@ -87,20 +99,9 @@ public class Server {
     }
 
 
-    private boolean validateMove(String move, ClientHandler player) {
-        // Implement move validation logic based on PlayYard and Domino rules
-        // Placeholder for move validation
-        // This would involve checking the move against the playYard rules, handling drawing from the boneyard, etc.
-        return true;
-    }
 
-    private void broadcastGameState() {
-        String state = "Current board: ";
-        for (ClientHandler client : clientHandlers) {
-            client.sendMessageToClient(state);
-            client.sendMessageToClient(playYard.displayPlayYard());
-        }
-    }
+
+
 
     private void broadcastMessage(String message) {
         for (ClientHandler client : clientHandlers) {
@@ -121,7 +122,7 @@ public class Server {
     private static void promptUser() throws IOException {
 
         Scanner scanner = new Scanner(System.in);
-        System.out.println("How many human players (client) do you want? Select up to 3");
+        System.out.println("How many human players (client) do you want? Select up to 2");
         maxClient = Integer.parseInt(scanner.nextLine());
     }
 
@@ -129,9 +130,7 @@ public class Server {
         return clientHandlers;
     }
 
-    public int numOfClients() {
-        return maxClient;
-    }
+
 
     public static void main(String[] args) {
 

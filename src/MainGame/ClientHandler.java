@@ -35,7 +35,7 @@ public class ClientHandler implements Runnable {
             scanner = new Scanner(System.in);
             random = new Random();
             clientHandlerList = server.clientHandlers();
-            System.out.println("client handler list is " + clientHandlerList.size());
+            //System.out.println("client handler list is " + clientHandlerList.size());
             isLastClient = lastClient;
             this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -43,39 +43,64 @@ public class ClientHandler implements Runnable {
             this.clientUsername = bufferedReader.readLine();
             broadcastMessage("SERVER: " + clientUsername + " has entered the chat.");
 
-            if (!isLastClient) {
-                sendMessageToClient("Welcome " + clientUsername + "! Waiting for other players to join...");
-            } else {
-                sendMessageToClient("Welcome " + clientUsername + "! Preparing to start the game...");
-            }
-            sendMessageToClient("Your initial hand of dominoes: " + hand.toString());
+            sendInitialHand(hand);  // Send the initial hand to the client
+
+
         } catch (IOException e) {
             closeEverything(socket, bufferedReader, bufferedWriter);
         }
     }
 
 
+    private void processDominoPlay(int dominoIndex) {
+        // Process the domino play, update game state
+        Domino dominoPlayed = hand.remove(dominoIndex);
+        server.addDominoToPlayYard(dominoPlayed,0);
+
+    }
+
+
+
+    private void sendInitialHand(List<Domino> hand) {
+        StringBuilder handBuilder = new StringBuilder();
+        for (Domino domino : hand) {
+            handBuilder.append(domino.getSide1()).append(",").append(domino.getSide2()).append(";");
+        }
+        try {
+            bufferedWriter.write("INIT_HAND " + handBuilder.toString());
+            bufferedWriter.newLine();
+            bufferedWriter.flush();
+        } catch (IOException e) {
+            System.out.println("Error sending initial hand to client: " + e.getMessage());
+            closeEverything(socket, bufferedReader, bufferedWriter);
+        }
+    }
+
 
 
 
 
     @Override
+    // ClientHandler.java - Part of the server that handles individual clients
     public void run() {
         String messageFromClient;
-
 
         try {
             while (socket.isConnected()) {
                 messageFromClient = bufferedReader.readLine();
-                if (messageFromClient == null) throw new IOException("domino.Client disconnected");
-                //server.processPlayerMove(messageFromClient, this);
-                broadcastMessage(messageFromClient);
+                if (messageFromClient.startsWith("PLAY_DOMINO")) {
+                    int index = Integer.parseInt(messageFromClient.split(" ")[1]);
+                    System.out.println("the index of domino selcted is: " + index);
+                    processDominoPlay(index);
+                }
             }
-        }catch (IOException e) {
+        } catch (IOException e) {
             System.out.println("Client " + clientUsername + " disconnected unexpectedly.");
             closeEverything(socket, bufferedReader, bufferedWriter);
         }
     }
+
+
 
 
 
@@ -93,7 +118,7 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    public void sendMessageToUser(String messageToSend) {
+    public void sendMessageToClient(String messageToSend) {
 
         for (ClientHandler clientHandler : clientHandlerList) {
             try {
@@ -108,15 +133,8 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    public void sendMessageToClient(String message) {
-        try {
-            bufferedWriter.write(message);
-            bufferedWriter.newLine();
-            bufferedWriter.flush();
-        } catch (IOException e) {
-            closeEverything(socket, bufferedReader, bufferedWriter);
-        }
-    }
+
+
 
     public void removeClientHandler() {
 
@@ -146,25 +164,6 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    public String getClientUsername() {
-        return clientUsername;
-    }
-
-    public int getHandSize() {
-        return this.hand.size();
-    }
-
-    public Domino getDomino(int index) {
-        if (index >= 0 && index < this.hand.size()) {
-            return this.hand.get(index);
-        }
-        return null;
-    }
-    public void removeDomino(int index) {
-        if (index >= 0 && index < this.hand.size()) {
-            this.hand.remove(index);
-        }
-    }
 
 }
 

@@ -34,7 +34,7 @@ public class PlayYard {
      * @param domino The domino to add.
      * @param side   The side to add the domino on (0 for left, 1 for right).
      */
-    public void addDomino(Domino domino, int side) {
+    public synchronized void addDomino(Domino domino, int side) {
         // If it's the first domino, simply add it to the play yard
         if (dominosInPlay.isEmpty()) {
 
@@ -124,14 +124,8 @@ public class PlayYard {
         return display.toString();
     }
 
-    /**
-     * Determines if there is at least one domino in the given hand that can be played on the current play yard.
-     *
-     * @param playYard The current play yard.
-     * @param hand     The hand to check for playable dominoes.
-     * @return true if there is a playable domino, false otherwise.
-     */
-    public static boolean hasPlaybleDomino(PlayYard playYard, List<Domino> hand) {
+
+    public  boolean hasPlaybleDomino(PlayYard playYard, List<Domino> hand) {
         int[] chainEnds = playYard.getChainEnds(); // Retrieve the current chain ends from the play yard
 
         for (Domino domino : hand) {
@@ -150,15 +144,7 @@ public class PlayYard {
         return false; // No playable domino found
     }
 
-    /**
-     * Determines if a specific domino is playable on the current play yard, and if so,
-     * provides details on how it can be played.
-     *
-     * @param playYard    The current play yard.
-     * @param domino      The domino to check for playability.
-     * @param playDetails An array to store details about how the domino can be played.
-     * @return true if the domino is playable, false otherwise.
-     */
+
     public static boolean isPlayableDomino(PlayYard playYard, Domino domino, int[] playDetails) {
 
         int[] chainEnds = playYard.getChainEnds(); // Retrieve the current chain ends from the play yard
@@ -215,18 +201,6 @@ public class PlayYard {
     }
 
 
-    /**
-     * Checks if either the human or computer has won, based on the state of their hands,
-     * the play yard, and the remaining deck.
-     *
-     * @param humanHand         The human player's hand.
-     * @param computerHand      The computer player's hand.
-     * @param playYard          The current play yard.
-     * @param distribute        The distribution of dominoes.
-     * @param lastPlayerIsHuman Indicates if the last player to play was human.
-     * @return true if there is a winner, false otherwise.
-     */
-
     public static boolean checkWinner(List<Domino> humanHand, List<Domino> computerHand,
                                       PlayYard playYard, Distribute distribute, boolean lastPlayerIsHuman) {
         // Check if either player has won by emptying their hand
@@ -275,6 +249,7 @@ public class PlayYard {
         return false;
     }
 
+
     /**
      * Counts the total number of dots in a player's hand.
      *
@@ -288,4 +263,13 @@ public class PlayYard {
         }
         return totalDots;
     }
+
+
+
+
+
+
+
+
+
 }
