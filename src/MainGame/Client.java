@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Scanner;
 
 public class Client {
-    private Socket socket;
+    public Socket socket;
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
     private String username;
@@ -138,6 +138,10 @@ public class Client {
                             boolean rotated = "yes".equalsIgnoreCase(scanner.nextLine().trim());
                             if (rotated) {
                                 selectedDomino.rotate();
+                                bufferedWriter.write("Rotate-Domino " + index);
+                                bufferedWriter.newLine();
+                                bufferedWriter.flush();
+                                System.out.println("domino rotated. " + selectedDomino);
                             }
 
                             if (playYard.hasPlaybleDomino(playYard,hand)) {
