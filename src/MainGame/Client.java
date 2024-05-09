@@ -44,7 +44,6 @@ public class Client {
     public  void connectToServer(String host, int port){
 
         try {
-
             bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
             bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             System.out.println("Connected to the server at " + host + " on " + port);
@@ -216,10 +215,6 @@ public class Client {
         }
         return parsedHand;
     }
-
-
-
-
 
 
 
