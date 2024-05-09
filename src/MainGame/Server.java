@@ -82,7 +82,7 @@ public class Server {
             return;
         }
 
-        clientHandler. promptPlayerToMove(currentPlayerIndex);
+
         currentPlayerIndex += 1;
     }
 
