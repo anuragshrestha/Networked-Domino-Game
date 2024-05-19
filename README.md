@@ -1,8 +1,8 @@
-# CS-351 Project 5 Networked Domino
-## Authors: Suman Kafle, Somiyo Rana, Anurag Shrestha
+# Networked Domino Game
 
-This project extends a previously developed (player vs computer) Dominoes game to a networked environment that
-supports up to 3 human players from separate computers. Utilizing Java for both server and client applications,
+
+This project is a Dominoes game to a networked environment that supports up to 3 human players from separate computers. 
+Utilizing Java for both server and client applications,
 this version maintains the core gameplay mechanics while enhancing them for multiplayer support and network interaction.
 
 # Usage
@@ -37,5 +37,4 @@ Game State Persistence: The server maintains the state of the game, ensuring con
 Error Handling and Validations: Comprehensive error handling and input validation to prevent illegal moves and ensure a
 smooth gaming experience
 
-# Known Issues
-In some cases, the game doesn't complete or end. 
+# This project was our final group project for class `Design of Large programs using Object-oriented programming`.

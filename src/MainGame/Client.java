@@ -55,41 +55,6 @@ public class Client {
         }
     }
 
-//    public void sendMessage() {
-//        Scanner scanner = new Scanner(System.in);
-//        try {
-//            while (socket.isConnected()) {
-//
-//                System.out.println("Enter the index of the domino to play:");
-//                String input = scanner.nextLine().trim();
-//
-//                try {
-//                    int index = Integer.parseInt(input);
-//                    if (index >= 0 && index < hand.size()) {
-//                        Domino selectedDomino = this.hand.get(index);
-//                        playYard.addDomino(selectedDomino, 0); // Assuming always to the right side for simplicity
-//                        hand.remove(index);
-//                        System.out.println("Domino played.");
-//
-//                        // Send a message to the server with the index of the domino played
-//                        bufferedWriter.write("PLAY_DOMINO " + index);
-//                        bufferedWriter.newLine();
-//                        bufferedWriter.flush();
-//                    } else {
-//                        System.out.println("Invalid index. Please choose a valid index.");
-//                    }
-//                } catch (NumberFormatException e) {
-//                    System.out.println("Invalid input. Please enter a numeric index.");
-//                } catch (IOException e) {
-//                    throw new RuntimeException(e);
-//                }
-//            }
-//        } finally {
-//            scanner.close();
-//        }
-//    }
-
-
 
     public void sendMessage() {
         Scanner scanner = new Scanner(System.in);
