@@ -52,10 +52,10 @@ public class ClientHandler implements Runnable {
     }
 
 
-    private void processDominoPlay(int dominoIndex) {
+    private void processDominoPlay(int dominoIndex, int side) {
         // Process the domino play, update game state
         Domino dominoPlayed = hand.remove(dominoIndex);
-        server.addDominoToPlayYard(dominoPlayed,0);
+        server.addDominoToPlayYard(dominoPlayed,side);
 
     }
 
@@ -100,8 +100,9 @@ public class ClientHandler implements Runnable {
                 messageFromClient = bufferedReader.readLine();
                 if (messageFromClient.startsWith("PLAY_DOMINO")) {
                     int index = Integer.parseInt(messageFromClient.split(" ")[1]);
+                    int rotateSide = Integer.parseInt(messageFromClient.split(" ")[2]);
                     System.out.println("the index of domino selected is: " + index);
-                    processDominoPlay(index);
+                    processDominoPlay(index, rotateSide);
                 } else if(messageFromClient.startsWith("Rotate-Domino")){
                     int index = Integer.parseInt(messageFromClient.split(" ")[1]);
                     processDominoRotation(index);

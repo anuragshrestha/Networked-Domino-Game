@@ -140,7 +140,6 @@ public class Client {
                                 bufferedWriter.write("Rotate-Domino " + index);
                                 bufferedWriter.newLine();
                                 bufferedWriter.flush();
-                                System.out.println("domino rotated. " + selectedDomino);
                             }
 
                             if (playYard.hasPlaybleDomino(playYard,hand)) {
@@ -149,7 +148,7 @@ public class Client {
                                 bufferedWriter.write("PLAY_DOMINO " + index + " " + side + " " + rotated);
                                 bufferedWriter.newLine();
                                 bufferedWriter.flush();
-                                System.out.println("Domino played.");
+                                System.out.println("Your turn now.");
                             } else {
                                 if (rotated) { // Rotate back if not playable
                                     selectedDomino.rotate();

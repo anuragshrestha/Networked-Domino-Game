@@ -121,6 +121,7 @@ public class PlayYard {
                 display.append("  ").append(topRowString).append("\n").append(botRowString);
             }
         }
+
         return display.toString();
     }
 
