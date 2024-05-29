@@ -3,7 +3,7 @@
 
 This project is a Dominoes game to a networked environment that supports up to 3 human players from separate computers. 
 Utilizing Java for both server and client applications,
-this version maintains the core gameplay mechanics while enhancing them for multiplayer support and network interaction.
+this version maintains the core gameplay mechanics while enhancing them for multiplayer support and network interaction. Multipler player can play the same game under the same host simultaenously.
 
 # Usage
 First you run server class, which starts the main game server. It prompts you to enter the number of human player you want,
